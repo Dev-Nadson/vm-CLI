@@ -1,5 +1,5 @@
 import typer
-from SSHConfig import exec_command
+from SSHConfig import exec_command, send_archive
 from utils import verify_pass
 
 app = typer.Typer()
@@ -14,32 +14,41 @@ def show_credentials(
     command = "cat /opt/e-SUS/webserver/config/credenciais.txt"
     password = verify_pass(password, username)
 
-    typer.echo("Conexão com sucesso")
+    typer.secho("Conexão com sucesso!", fg=typer.colors.GREEN, bold=True)
 
     try:
         response, errors = exec_command(host, username, password, command)
 
         if response:
-            print(f"O comando executado com sucesso:")
-            print(response)
+            typer.secho("O comando executado com sucesso:", fg=typer.colors.GREEN)
+            typer.echo(response)
         
         if errors:
-            print(f"O comando '{command}' retornou erros:")
-            print(errors)
+            typer.secho("O comando '{command}' retornou erros:", fg=typer.colors.GREEN)
+            typer.echo(f"[bold red][/bold red]")
+            typer.echo(errors)
 
     except (ValueError, Exception) as e:
-        print(f"Erro de configuração: {e}")
+        typer.echo(f"Erro de configuração: {e}")
 
 
 @app.command()
 def config_certificate(
     host: str = typer.Argument(..., help="O IP da máquina"), #os ... deixa obrigatório
     username: str = typer.Option("root", "--username", "-u", help="O usuário padrão da máquina"), 
-    password: str = typer.Option(None, "--password", "-p", help="Senha do acesso SSH")
+    password: str = typer.Option(None, "--password", "-p", help="Senha do acesso SSH"),
+    local_path: str = typer.Option(None, "--local-path", "-l", help="Caminho local do arquivo"),
     ):
 
+    remote_path = "/opt/e-SUS/webserver/chaves"
+    password = verify_pass(password, username)
+
     if username == "root":
-        command = ""
+        try:
+            send_archive(host, username, password, local_path, remote_path)
+
+        except Exception as e:
+            typer.echo(f"Falha no Upload: {e}")
 
 @app.command()
 def setup_proxmox_nginx():
