@@ -1,5 +1,5 @@
 import typer
-from SSHConfig import exec_command, send_archive
+from SSHConfig import exec_command, send_archive, verify_folder_exists
 from utils import verify_pass
 
 app = typer.Typer()
@@ -40,12 +40,12 @@ def config_certificate(
     local_path: str = typer.Option(None, "--local-path", "-l", help="Caminho local do arquivo"),
     ):
 
-    remote_path = "/opt/e-SUS/webserver/chaves"
     password = verify_pass(password, username)
-
+    
     if username == "root":
         try:
-            send_archive(host, username, password, local_path, remote_path)
+            verify_folder_exists(host, username, password)
+            send_archive(host, username, password, local_path)
 
         except Exception as e:
             typer.echo(f"Falha no Upload: {e}")
