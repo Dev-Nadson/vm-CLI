@@ -4,4 +4,4 @@ version = "1.0.0"
 
 [dependencies]
 typer = "0.20.0"
-paramiko = "4.0.0"
+paramiko = "2.12.0"
