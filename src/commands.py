@@ -1,4 +1,5 @@
 import typer
+from pathlib import Path
 from SSHConfig import exec_command, send_archive, verify_folder_exists
 from utils import verify_pass
 
@@ -55,6 +56,7 @@ def show_credentials(
     ):
 
     command = "cat /opt/e-SUS/webserver/config/credenciais.txt"
+
     if password == None:
         password = verify_pass(password, username)
 
@@ -80,15 +82,19 @@ def config_certificate(
     host: str = typer.Argument(..., help="O IP da máquina"), #os ... deixa obrigatório
     username: str = typer.Option("root", "--username", "-u", help="O usuário padrão da máquina"), 
     password: str = typer.Option(None, "--password", "-p", help="Senha do acesso SSH"),
-    local_path: str = typer.Option(None, "--local-path", "-l", help="Caminho local do arquivo"),
+    archive_name: str = typer.Option(None, "--local-path", "-l", help="Caminho local do arquivo"),
     ):
+
+    download_dir = Path.home() / "Downloads"
+    remote_path = download_dir / archive_name
+    
     if password == None:
         password = verify_pass(password, username)
     
     if username == "root":
         try:
             verify_folder_exists(host, username, password)
-            send_archive(host, username, password, local_path)
+            send_archive(host, username, password, remote_path)
 
         except Exception as e:
             typer.echo(f"Falha no Upload: {e}")
@@ -97,7 +103,7 @@ def config_certificate(
         #Adicionar o SUDO
         try:
             verify_folder_exists(host, username, password)
-            send_archive(host, username, password, local_path)
+            send_archive(host, username, password, remote_path)
 
         except Exception as e:
             typer.echo(f"Falha no Upload: {e}")
